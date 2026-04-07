@@ -57,7 +57,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                MainScreen(mainViewModel = viewModel)
+                MainScreen(
+                    mainViewModel = viewModel,
+                    onStartFloatingService = { startFloatingService() },
+                    onStopFloatingService = { stopFloatingService() }
+                )
             }
         }
 

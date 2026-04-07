@@ -1,5 +1,8 @@
 package com.aisoul.assistant
 
+import android.content.Intent
+import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,17 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aisoul.assistant.components.AutomationSettingsScreen
 import com.aisoul.assistant.components.ChatPanel
 import com.aisoul.assistant.components.ChatWorkbenchScreen
+import com.aisoul.assistant.components.SoulMatchScreen
 import com.aisoul.assistant.model.SoulUser
 import com.aisoul.assistant.viewmodel.AutomationSettingsViewModel
 import com.aisoul.assistant.viewmodel.ChatViewModel
 import com.aisoul.assistant.viewmodel.ChatWorkbenchViewModel
 import com.aisoul.assistant.viewmodel.MainViewModel
+import com.aisoul.assistant.viewmodel.SoulMatchViewModel
 
 data class TabItem(
     val label: String,
@@ -41,13 +47,31 @@ val tabItems = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    onStartFloatingService: () -> Unit = {},
+    onStopFloatingService: () -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var showSoulMatchScreen by remember { mutableStateOf(false) }
 
     val chatViewModel: ChatViewModel = viewModel()
     val chatWorkbenchViewModel: ChatWorkbenchViewModel = viewModel()
     val automationSettingsViewModel: AutomationSettingsViewModel = viewModel()
+    val soulMatchViewModel: SoulMatchViewModel = viewModel()
+
+    // Show SoulMatchScreen when requested
+    if (showSoulMatchScreen) {
+        SoulMatchScreen(
+            viewModel = soulMatchViewModel,
+            onNavigateToChatWorkbench = { user ->
+                chatWorkbenchViewModel.setCurrentUser(user)
+                selectedTabIndex = 3
+                showSoulMatchScreen = false
+            },
+            onNavigateBack = { showSoulMatchScreen = false }
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -74,13 +98,17 @@ fun MainScreen(
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTabIndex) {
                 0 -> FloatingBallSettingsTab(
-                    viewModel = mainViewModel
+                    viewModel = mainViewModel,
+                    onStartService = onStartFloatingService,
+                    onStopService = onStopFloatingService,
+                    onNavigateToSoulMatch = { showSoulMatchScreen = true }
                 )
                 1 -> AiTabContent(
                     onNavigateToWorkbench = { user ->
                         chatWorkbenchViewModel.setCurrentUser(user)
                         selectedTabIndex = 3
-                    }
+                    },
+                    onNavigateToSoulMatch = { showSoulMatchScreen = true }
                 )
                 2 -> RecordsTabContent(
                     onNavigateToWorkbench = { user ->
@@ -100,9 +128,13 @@ fun MainScreen(
 
 @Composable
 private fun FloatingBallSettingsTab(
-    viewModel: MainViewModel
+    viewModel: MainViewModel,
+    onStartService: () -> Unit = {},
+    onStopService: () -> Unit = {},
+    onNavigateToSoulMatch: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -147,11 +179,11 @@ private fun FloatingBallSettingsTab(
                     )
                 }
                 if (uiState.isFloatingServiceRunning) {
-                    TextButton(onClick = { }) {
+                    TextButton(onClick = { onStopService() }) {
                         Text("停止")
                     }
                 } else {
-                    Button(onClick = { }) {
+                    Button(onClick = { onStartService() }) {
                         Text("启动")
                     }
                 }
@@ -217,9 +249,55 @@ private fun FloatingBallSettingsTab(
                         color = MaterialTheme.colorScheme.outline
                     )
                 }
-                Button(onClick = { }) {
+                Button(onClick = {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    context.startActivity(intent)
+                    Toast.makeText(context, "请在列表中找到 Soul 无障碍服务并开启", Toast.LENGTH_LONG).show()
+                }) {
                     Text("授权")
                 }
+            }
+        }
+
+        // Soul匹配助手入口
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onNavigateToSoulMatch()
+                        Toast.makeText(context, "正在打开 Soul 匹配助手...", Toast.LENGTH_SHORT).show()
+                    }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Soul 匹配助手",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "AI 智能匹配推荐，生成个性化开场白",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
         }
 
@@ -236,7 +314,8 @@ private fun FloatingBallSettingsTab(
 
 @Composable
 private fun AiTabContent(
-    onNavigateToWorkbench: (SoulUser) -> Unit
+    onNavigateToWorkbench: (SoulUser) -> Unit,
+    onNavigateToSoulMatch: () -> Unit
 ) {
     // AI Tab - Soul 自动化功能
     var selectedSubTab by remember { mutableIntStateOf(0) }
@@ -256,7 +335,10 @@ private fun AiTabContent(
         }
 
         when (selectedSubTab) {
-            0 -> SoulMatchTab(onNavigateToWorkbench = onNavigateToWorkbench)
+            0 -> SoulMatchTab(
+                onNavigateToWorkbench = onNavigateToWorkbench,
+                onNavigateToSoulMatch = onNavigateToSoulMatch
+            )
             1 -> AutomationSettingsContent()
         }
     }
@@ -264,9 +346,11 @@ private fun AiTabContent(
 
 @Composable
 private fun SoulMatchTab(
-    onNavigateToWorkbench: (SoulUser) -> Unit
+    onNavigateToWorkbench: (SoulUser) -> Unit,
+    onNavigateToSoulMatch: () -> Unit
 ) {
-    // TODO: 调用 Soul 无障碍服务扫描
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -293,7 +377,10 @@ private fun SoulMatchTab(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { /* 启动扫描 */ }
+            onClick = {
+                Toast.makeText(context, "正在打开 Soul 匹配助手...", Toast.LENGTH_SHORT).show()
+                onNavigateToSoulMatch()
+            }
         ) {
             Icon(Icons.Default.Search, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
@@ -478,7 +565,7 @@ private fun RecordsTabContent(
 private fun MatchRecordsTab(
     onNavigateToWorkbench: (SoulUser) -> Unit
 ) {
-    // 模拟匹配记录数据
+    val context = LocalContext.current
     val mockRecords = remember {
         listOf(
             MatchRecord("小美", "22♀", "音乐、旅行", 85, "2小时前"),
@@ -496,7 +583,10 @@ private fun MatchRecordsTab(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }
+                    .clickable {
+                        Toast.makeText(context, "查看与 ${record.name} 的匹配详情", Toast.LENGTH_SHORT).show()
+                        onNavigateToWorkbench(SoulUser(id = record.name, name = record.name, avatarUrl = null))
+                    }
             ) {
                 Row(
                     modifier = Modifier
@@ -508,7 +598,9 @@ private fun MatchRecordsTab(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .clickable { },
+                            .clickable {
+                                Toast.makeText(context, "查看 ${record.name} 的资料", Toast.LENGTH_SHORT).show()
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("🤖", style = MaterialTheme.typography.titleLarge)
@@ -555,6 +647,7 @@ private fun MatchRecordsTab(
 
 @Composable
 private fun ChatRecordsTab() {
+    val context = LocalContext.current
     val mockChats = remember {
         listOf(
             ChatRecord("小美", "最后一条消息...", "刚刚"),
@@ -571,7 +664,9 @@ private fun ChatRecordsTab() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }
+                    .clickable {
+                        Toast.makeText(context, "打开与 ${chat.name} 的聊天", Toast.LENGTH_SHORT).show()
+                    }
             ) {
                 Row(
                     modifier = Modifier
@@ -583,7 +678,9 @@ private fun ChatRecordsTab() {
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .clickable { },
+                            .clickable {
+                                Toast.makeText(context, "查看 ${chat.name} 的资料", Toast.LENGTH_SHORT).show()
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Text("💬", style = MaterialTheme.typography.titleMedium)
