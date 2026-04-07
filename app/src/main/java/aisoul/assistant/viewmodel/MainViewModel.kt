@@ -52,7 +52,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshState() {
-        val context = getApplication<Application>()
         val hasApiKey = apiKeyManager.hasApiKey()
         val maskedKey = if (hasApiKey) {
             val key = apiKeyManager.claudeApiKey ?: ""
