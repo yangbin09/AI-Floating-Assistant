@@ -9,8 +9,11 @@ interface ChatMessageDao {
     @Query("SELECT * FROM chat_messages WHERE conversationId = :conversationId ORDER BY timestamp ASC")
     fun getMessagesForConversation(conversationId: String): Flow<List<ChatMessageEntity>>
 
+    @Query("SELECT * FROM chat_messages ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentMessages(limit: Int): Flow<List<ChatMessageEntity>>
+
     @Query("SELECT * FROM chat_messages WHERE conversationId = :conversationId ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getRecentMessages(conversationId: String, limit: Int): List<ChatMessageEntity>
+    suspend fun getRecentMessagesForConversation(conversationId: String, limit: Int): List<ChatMessageEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: ChatMessageEntity): Long

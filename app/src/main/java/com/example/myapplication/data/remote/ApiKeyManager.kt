@@ -30,8 +30,8 @@ class ApiKeyManager(context: Context) {
     fun hasApiKey(): Boolean = !claudeApiKey.isNullOrBlank()
 
     companion object {
-        private const val KEY_CLAUDE_API = "claude_api_key"
+        private const val KEY_CLAUDE_API = "deepseek_api_key"
         private const val KEY_MODEL = "selected_model"
-        const val DEFAULT_MODEL = "claude-sonnet-4-20250514"
+        const val DEFAULT_MODEL = "deepseek-chat"
     }
 }

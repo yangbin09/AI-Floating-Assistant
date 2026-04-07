@@ -37,7 +37,7 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
     private lateinit var windowManager: WindowManager
     private var floatingView: ComposeView? = null
     private var chatPanelView: ComposeView? = null
-    private lateinit var chatViewModel: ChatViewModel
+    private var chatViewModel: ChatViewModel? = null
 
     private val _lifecycleRegistry = androidx.lifecycle.LifecycleRegistry(this)
     private val _savedStateRegistryController = SavedStateRegistryController.create(this)
@@ -59,14 +59,24 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             return
         }
 
+        // Create ViewModel with Application context (NOT Service context)
+        chatViewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[ChatViewModel::class.java]
+
         startForegroundService()
-        showFloatingBall()
-        chatViewModel = ViewModelProvider(this)[ChatViewModel::class.java]
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+
+        // Show floating ball after lifecycle is resumed
+        if (floatingView == null) {
+            showFloatingBall()
+        }
+
         return START_STICKY
     }
 
@@ -90,7 +100,9 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
-            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
+            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                data = android.net.Uri.parse("package:$packageName")
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -112,8 +124,6 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
     }
 
     private fun showFloatingBall() {
-        if (floatingView != null) return
-
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -146,11 +156,7 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                         onDrag = { deltaX, deltaY ->
                             params.x += deltaX.toInt()
                             params.y += deltaY.toInt()
-                            try {
-                                windowManager.updateViewLayout(this, params)
-                            } catch (e: Exception) {
-                                // View may have been removed
-                            }
+                            updateFloatingViewLayout(params)
                         },
                         onDragEnd = {
                             snapToEdge(params)
@@ -163,8 +169,24 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         try {
             windowManager.addView(floatingView, params)
         } catch (e: Exception) {
+            floatingView?.let {
+                try {
+                    windowManager.removeView(it)
+                } catch (ignored: Exception) {}
+            }
             floatingView = null
             stopSelf()
+        }
+    }
+
+    private fun updateFloatingViewLayout(params: WindowManager.LayoutParams) {
+        floatingView?.let { view ->
+            try {
+                windowManager.updateViewLayout(view, params)
+            } catch (e: Exception) {
+                // View was removed, clean up
+                floatingView = null
+            }
         }
     }
 
@@ -176,11 +198,7 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             0
         }
         params.x = targetX
-        try {
-            windowManager.updateViewLayout(floatingView, params)
-        } catch (e: Exception) {
-            // View may have been removed
-        }
+        updateFloatingViewLayout(params)
     }
 
     private fun toggleChatPanel() {
@@ -220,7 +238,7 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                 MyApplicationTheme {
                     ChatPanel(
                         onClose = { removeChatPanel() },
-                        viewModel = chatViewModel
+                        viewModel = chatViewModel!!
                     )
                 }
             }
@@ -229,6 +247,11 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         try {
             windowManager.addView(chatPanelView, params)
         } catch (e: Exception) {
+            chatPanelView?.let {
+                try {
+                    windowManager.removeView(it)
+                } catch (ignored: Exception) {}
+            }
             chatPanelView = null
         }
     }
@@ -249,13 +272,6 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         _viewModelStore.clear()
 
-        floatingView?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (e: Exception) {
-                // Already removed
-            }
-        }
         chatPanelView?.let {
             try {
                 windowManager.removeView(it)
@@ -263,6 +279,16 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                 // Already removed
             }
         }
+        chatPanelView = null
+
+        floatingView?.let {
+            try {
+                windowManager.removeView(it)
+            } catch (e: Exception) {
+                // Already removed
+            }
+        }
+        floatingView = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
