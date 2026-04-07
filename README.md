@@ -1,4 +1,4 @@
-# AI Floating Assistant
+# AI灵魂伴侣
 
 <div align="center">
 
@@ -8,7 +8,7 @@
 ![License](https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-green?style=flat-square&logo=githubactions)
 
-**一个运行在 Android 系统上的 AI 悬浮球助手应用，支持聊天自动回复**
+**AI灵魂伴侣 - 运行在 Android 系统上的智能社交助手，自动读取 Soul 应用内容并生成回复建议**
 
 [English](./README.md) | 简体中文
 
@@ -22,27 +22,12 @@
 
 | 功能 | 描述 |
 |------|------|
-| 悬浮球 | 可拖动的悬浮球，松开自动贴边 |
-| 聊天面板 | 点击展开/收起聊天界面 |
-| 通知监听 | 自动读取微信、WhatsApp、Telegram 等应用的新消息 |
-| AI 自动回复 | 调用 Claude API 生成智能回复 |
-| 本地存储 | Room 数据库存储聊天记录和联系人 |
+| 悬浮球 | 可拖动的悬浮球，松开自动贴边，点击展开设置界面 |
+| 无障碍服务 | 自动读取 Soul 应用界面内容 |
+| AI 智能回复 | 调用 DeepSeek API 生成智能回复建议 |
+| 心动值追踪 | 记录与好友的心动值变化 |
+| 匹配记录 | 保存历史匹配记录和聊天内容 |
 | 确认模式 | AI 生成回复后需用户确认再发送 |
-
-### 支持的聊天应用
-
-- 微信 (WeChat)
-- WhatsApp
-- Telegram
-- QQ
-- Facebook Messenger
-- LINE
-- Skype
-- Viber
-- Instagram
-- Twitter/X
-- KakaoTalk
-- Snapchat
 
 ### 悬浮球交互
 
@@ -96,16 +81,16 @@
 | 数据库 | Room | 2.6.1 |
 | 网络 | OkHttp | 4.12.0 |
 | 加密存储 | EncryptedSharedPreferences | 1.1.0-alpha06 |
-| AI 集成 | Claude API | - |
+| AI 集成 | DeepSeek API / Claude API | - |
 | 最低 SDK | Android 11 | API 30 |
-| 目标 SDK | Android 14 | API 36 |
+| 目标 SDK | Android 14 | API 35 |
 | 编译工具 | Gradle | 9.2.1 |
 
 ### 架构图
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                      AI Floating Assistant                      │
+│                      AI灵魂伴侣                                │
 ├──────────────────────────────────────────────────────────────┤
 │                                                                │
 │  ┌──────────────┐         ┌──────────────────────┐           │
@@ -121,13 +106,13 @@
 │     ┌─────────────────────────────────┼────────────────────┐ │
 │     │                                 │                    │ │
 │  ┌──▼──────────┐              ┌──────▼─────────┐         │ │
-│  │FloatingBall │              │ ChatPanel       │         │ │
-│  │(悬浮球组件)  │              │ (聊天面板)       │         │ │
+│  │ 4 Tab 导航  │              │ 悬浮球设置面板   │         │ │
+│  │ (主屏幕)     │              │ (设置界面)       │         │ │
 │  └─────────────┘              └──────┬─────────┘         │ │
 │                                       │                    │ │
 │                               ┌───────▼─────────┐        │ │
-│                               │ ChatViewModel   │        │ │
-│                               │ (业务逻辑)       │        │ │
+│                               │ MainViewModel   │        │ │
+│                               │ (主界面逻辑)     │        │ │
 │                               └───────┬─────────┘        │ │
 │                                       │                    │ │
 └───────────────────────────────────────┼────────────────────┘ │
@@ -135,18 +120,18 @@
 ┌───────────────────────────────────────▼────────────────────┐ │
 │                         数据层                                 │ │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────┐  │ │
-│  │ Room Database    │  │ Claude API Client │  │ ApiKey   │  │ │
-│  │ (消息/联系人存储)  │  │ (AI 回复生成)     │  │ Manager  │  │ │
+│  │ Room Database    │  │ DeepSeek API     │  │ ApiKey   │  │ │
+│  │ (聊天/匹配记录)   │  │ (AI 回复生成)     │  │ Manager  │  │ │
 │  └──────────────────┘  └──────────────────┘  └──────────┘  │ │
 └───────────────────────────────────────────────────────────┘ │
 │                                                                │
 ┌──────────────────────────────────────────────────────────────┐ │
-│                      通知监听服务                               │ │
+│                      无障碍服务                                 │ │
 │  ┌────────────────────────────────────────────────────────┐  │ │
-│  │ ChatNotificationListenerService                       │  │ │
-│  │ - 读取微信/WhatsApp/Telegram 等应用的新消息通知        │  │ │
-│  │ - 解析通知内容（发送者、消息内容、时间戳）              │  │ │
-│  │ - 存储消息到数据库                                     │  │ │
+│  │ SoulAccessibilityService                              │  │ │
+│  │ - 读取 Soul 应用界面内容                               │  │ │
+│  │ - 分析聊天阶段和用户关系                               │  │ │
+│  │ - 自动化交互操作                                       │  │ │
 │  └────────────────────────────────────────────────────────┘  │ │
 └──────────────────────────────────────────────────────────────┘ │
 ```
@@ -156,50 +141,54 @@
 ## 项目结构
 
 ```
-day01/
+AI-Floating-Assistant/
 ├── app/
 │   ├── src/main/
-│   │   ├── java/com/example/myapplication/
+│   │   ├── java/com/aisoul/assistant/
 │   │   │   │
 │   │   │   ├── MainActivity.kt              # 主活动，权限请求
 │   │   │   │
 │   │   │   ├── FloatingService.kt           # 悬浮窗服务（前台服务）
 │   │   │   │
 │   │   │   ├── components/                  # UI 组件
-│   │   │   │   ├── FloatingBall.kt         # 悬浮球
-│   │   │   │   └── ChatPanel.kt            # 聊天面板
+│   │   │   │   ├── DashboardComponents.kt  # 主页仪表盘组件
+│   │   │   │   └── MainScreen.kt           # 4 tab 主屏幕
 │   │   │   │
 │   │   │   ├── viewmodel/                   # ViewModel
+│   │   │   │   └── MainViewModel.kt        # 主界面逻辑
 │   │   │   │   └── ChatViewModel.kt        # 聊天逻辑
 │   │   │   │
 │   │   │   ├── model/                      # 数据模型
-│   │   │   │   └── ChatMessage.kt          # 消息模型
+│   │   │   │   ├── SoulUser.kt             # Soul 用户模型
+│   │   │   │   ├── ChatStage.kt           # 聊天阶段模型
+│   │   │   │   └── Persona.kt             # AI 人设模型
 │   │   │   │
 │   │   │   ├── data/
 │   │   │   │   ├── local/                   # 本地存储
-│   │   │   │   │   ├── entity/             # Room Entity
 │   │   │   │   │   ├── dao/                # Room DAO
 │   │   │   │   │   └── AppDatabase.kt      # Room Database
 │   │   │   │   └── remote/                  # 远程 API
-│   │   │   │       ├── ClaudeApiClient.kt  # Claude API 客户端
-│   │   │   │       ├── ApiKeyManager.kt    # API Key 加密管理
-│   │   │   │       └── model/              # API 模型
+│   │   │   │       ├── DeepSeekApiClient.kt  # DeepSeek API 客户端
+│   │   │   │       ├── ClaudeApiClient.kt   # Claude API 客户端
+│   │   │   │       └── ApiKeyManager.kt    # API Key 加密管理
 │   │   │   │
-│   │   │   ├── domain/                      # 业务逻辑
-│   │   │   │   ├── AutoReplyManager.kt     # 自动回复管理
+│   │   │   ├── domain/
+│   │   │   │   ├── strategy/              # 业务策略
+│   │   │   │   │   ├── ReplyGenerator.kt   # 回复生成器
+│   │   │   │   │   ├── ChatStageAnalyzer.kt  # 聊天阶段分析
+│   │   │   │   │   └── PersonaPromptBuilder.kt  # 人设提示词构建
 │   │   │   │   └── usecase/               # 用例
 │   │   │   │       └── GenerateAutoReplyUseCase.kt
 │   │   │   │
-│   │   │   ├── service/
-│   │   │   │   └── notification/            # 通知监听
-│   │   │   │       ├── ChatNotificationListenerService.kt
-│   │   │   │       ├── NotificationDataExtractor.kt
-│   │   │   │       └── AppPackageMapping.kt
+│   │   │   ├── accessibility/              # 无障碍服务
+│   │   │   │   ├── SoulAccessibilityService.kt  # Soul 无障碍服务
+│   │   │   │   ├── SoulPageAnalyzer.kt    # 页面分析器
+│   │   │   │   ├── SoulListAnalyzer.kt    # 列表分析器
+│   │   │   │   ├── SoulChatAnalyzer.kt    # 聊天分析器
+│   │   │   │   └── SoulProfileAnalyzer.kt # 个人资料分析器
 │   │   │   │
 │   │   │   └── ui/theme/                   # 主题配置
-│   │   │       ├── Theme.kt
-│   │   │       ├── Color.kt
-│   │   │       └── Type.kt
+│   │   │       └── Theme.kt
 │   │   │
 │   │   └── res/                            # 资源文件
 │   │
@@ -276,15 +265,15 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 3. 系统会请求「显示在其他应用上层」权限
 4. 授权后，悬浮球将出现在屏幕上
 5. 拖动悬浮球到合适位置
-6. 点击悬浮球展开聊天面板
-7. 在设置中配置 Claude API Key
+6. 点击悬浮球进入主界面
+7. 在设置中配置 DeepSeek API Key
 
 ---
 
 ## 配置 AI API Key
 
-1. 获取 [Claude API Key](https://console.anthropic.com/)
-2. 打开应用 → 设置 → API Key
+1. 获取 [DeepSeek API Key](https://platform.deepseek.com/)
+2. 打开应用 → AI 版本 → API Key
 3. 输入你的 API Key
 4. 应用会自动加密保存
 
@@ -294,17 +283,11 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ### 工作流程
 
-1. **通知监听**：应用在后台监听已授权应用的新消息通知
-2. **消息解析**：从通知中提取发送者和消息内容
-3. **AI 生成**：调用 Claude API 生成回复
-4. **确认发送**：用户确认后发送回复（或自动发送）
-
-### 支持的应用
-
-首次使用需要在系统设置中开启通知访问权限：
-
-1. 设置 → 通知访问 → 选择「AI Floating Assistant」
-2. 允许访问
+1. **无障碍服务**：通过 AccessibilityService 读取 Soul 应用界面内容
+2. **内容分析**：分析当前页面类型（列表/聊天/个人资料）
+3. **聊天阶段识别**：识别匹配中、聊天中、心动值变化等阶段
+4. **AI 生成**：调用 DeepSeek API 生成符合人设的回复
+5. **确认发送**：用户确认后通过无障碍服务执行点击发送
 
 ---
 
@@ -354,7 +337,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest
 
 # 运行特定测试类
-./gradlew testDebugUnitTest --tests "com.example.myapplication.ChatViewModelTest"
+./gradlew testDebugUnitTest --tests "com.aisoul.assistant.ChatViewModelTest"
 
 # 查看测试报告
 open app/build/reports/tests/testDebugUnitTest/index.html
@@ -401,14 +384,14 @@ open app/build/reports/tests/testDebugUnitTest/index.html
 
 ```bash
 # 查看详细日志
-adb logcat -v time | grep myapplication
+adb logcat -v time | grep aisoul
 
 # 查看悬浮窗层级
 adb shell dumpsys window windows | grep -A 10 "Window #"
 
 # 重新安装并清除数据
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell pm clear com.example.myapplication
+adb shell pm clear com.aisoul.assistant
 ```
 
 ---
@@ -417,12 +400,13 @@ adb shell pm clear com.example.myapplication
 
 ### v2.0.0 (2026-04-07)
 
-- ✅ 通知监听功能 - 自动读取聊天应用新消息
-- ✅ Room 数据库 - 本地存储聊天记录和联系人
-- ✅ Claude API 集成 - AI 智能自动回复
-- ✅ 确认发送模式 - 回复需用户确认再发送
-- ✅ 支持多种聊天应用 - 微信、WhatsApp、Telegram 等
-- ✅ CI/CD 流水线 - GitHub Actions 自动构建
+- ✅ 包名迁移 - 从 com.example.myapplication 迁移到 com.aisoul.assistant
+- ✅ 应用名称 - 更名为 "AI灵魂伴侣"
+- ✅ 应用图标 - 紫色聊天气泡图标
+- ✅ 4 Tab 导航 - 悬浮球、AI版本、记录、工作台
+- ✅ Soul 无障碍服务 - 自动读取 Soul 应用界面
+- ✅ DeepSeek API 集成 - AI 智能自动回复
+- ✅ 心动值追踪 - 记录与好友的心动值变化
 
 ### v1.0.0 (2026-04-07)
 
@@ -490,7 +474,7 @@ limitations under the License.
 - [Jetpack Compose](https://developer.android.com/compose) - 现代 Android UI 工具包
 - [Material Design 3](https://m3.material.io/) - 设计系统
 - [Android Developers](https://developer.android.com/) - 开发文档
-- [Claude API](https://docs.anthropic.com/) - AI 能力支持
+- [DeepSeek API](https://platform.deepseek.com/) - AI 能力支持
 
 ---
 

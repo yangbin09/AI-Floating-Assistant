@@ -1,6 +1,6 @@
 package com.example.myapplication
 
-import com.example.myapplication.model.ChatMessage
+import com.aisoul.assistant.model.ChatMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

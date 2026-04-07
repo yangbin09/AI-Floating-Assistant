@@ -1,6 +1,6 @@
 package com.example.myapplication
 
-import com.example.myapplication.model.ChatMessage
+import com.aisoul.assistant.model.ChatMessage
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.UUID

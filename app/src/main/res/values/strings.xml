@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">AI 悬浮助手</string>
-    <string name="accessibility_service_description">AI 悬浮助手通过此服务自动读取 Soul 等应用界面内容，生成智能回复建议。请确保已授权无障碍权限。</string>
+    <string name="app_name">AI灵魂伴侣</string>
+    <string name="accessibility_service_description">AI灵魂伴侣通过此服务自动读取 Soul 等应用界面内容，生成智能回复建议。请确保已授权无障碍权限。</string>
 </resources>

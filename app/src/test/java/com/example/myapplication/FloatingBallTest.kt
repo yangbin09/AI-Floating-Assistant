@@ -1,6 +1,5 @@
 package com.example.myapplication
 
-import com.example.myapplication.components.FloatingBall
 import org.junit.Assert.*
 import org.junit.Test
 
