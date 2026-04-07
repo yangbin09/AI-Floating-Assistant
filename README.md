@@ -1,4 +1,4 @@
-# AI Floating Assistant - AI 悬浮助手
+# AI Floating Assistant
 
 <div align="center">
 
@@ -6,27 +6,13 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-purple?style=flat-square&logo=kotlin)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2024.09.00-blue?style=flat-square&logo=jetpackcompose)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-green?style=flat-square&logo=githubactions)
 
-**一个运行在 Android 系统上的 AI 悬浮球助手应用**
+**一个运行在 Android 系统上的 AI 悬浮球助手应用，支持聊天自动回复**
 
 [English](./README.md) | 简体中文
 
 </div>
-
----
-
-## 目录
-
-- [功能特性](#功能特性)
-- [技术架构](#技术架构)
-- [项目结构](#项目结构)
-- [快速开始](#快速开始)
-- [核心模块](#核心模块)
-- [测试说明](#测试说明)
-- [开发指南](#开发指南)
-- [版本历史](#版本历史)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
 
 ---
 
@@ -38,9 +24,25 @@
 |------|------|
 | 悬浮球 | 可拖动的悬浮球，松开自动贴边 |
 | 聊天面板 | 点击展开/收起聊天界面 |
-| AI 回复 | 模拟 AI 回复，支持打字机效果 |
-| 后台运行 | 前台服务支持，进程保活 |
-| 权限管理 | Overlay 悬浮窗权限管理 |
+| 通知监听 | 自动读取微信、WhatsApp、Telegram 等应用的新消息 |
+| AI 自动回复 | 调用 Claude API 生成智能回复 |
+| 本地存储 | Room 数据库存储聊天记录和联系人 |
+| 确认模式 | AI 生成回复后需用户确认再发送 |
+
+### 支持的聊天应用
+
+- 微信 (WeChat)
+- WhatsApp
+- Telegram
+- QQ
+- Facebook Messenger
+- LINE
+- Skype
+- Viber
+- Instagram
+- Twitter/X
+- KakaoTalk
+- Snapchat
 
 ### 悬浮球交互
 
@@ -73,7 +75,6 @@
 │           │ 用户消息                           │   │
 │           └─────────────────────────────────┘   │
 │                                         │
-│                                         │
 ├─────────────────────────────────────────┤
 │  [输入你想问的问题...]            [发送] │
 └─────────────────────────────────────────┘
@@ -92,50 +93,63 @@
 | 设计风格 | Material Design 3 | - |
 | 架构模式 | MVVM | - |
 | 状态管理 | StateFlow | - |
-| 生命周期 | Lifecycle | 2.6.1 |
-| 编译工具 | Gradle | 9.2.1 |
+| 数据库 | Room | 2.6.1 |
+| 网络 | OkHttp | 4.12.0 |
+| 加密存储 | EncryptedSharedPreferences | 1.1.0-alpha06 |
+| AI 集成 | Claude API | - |
 | 最低 SDK | Android 11 | API 30 |
 | 目标 SDK | Android 14 | API 36 |
+| 编译工具 | Gradle | 9.2.1 |
 
 ### 架构图
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                    应用层 (Application)                │
-├──────────────────────────────────────────────────────┤
-│                                                        │
-│  ┌──────────────┐         ┌──────────────────────┐    │
-│  │ MainActivity │────────→│ FloatingService      │    │
-│  └──────────────┘         │ (前台服务)            │    │
-│                            └──────────┬───────────┘    │
-│                                       │                │
-│                            ┌──────────▼───────────┐    │
-│                            │ ComposeView          │    │
-│                            │ (悬浮层)              │    │
-│                            └──────────┬───────────┘    │
-│                                       │                │
-│     ┌──────────────────────────────────┼────────────┐  │
-│     │                                  │            │  │
-│  ┌──▼──────────┐              ┌────────▼─────────┐ │  │
-│  │FloatingBall │              │ ChatPanel         │ │  │
-│  │(悬浮球组件)  │              │ (聊天面板)        │ │  │
-│  └─────────────┘              └────────┬─────────┘ │  │
-│                                        │            │  │
-│                                 ┌──────▼─────────┐  │  │
-│                                 │ ChatViewModel   │  │  │
-│                                 │ (业务逻辑)      │  │  │
-│                                 └─────────────────┘  │  │
-│                                                        │
-└────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                      AI Floating Assistant                      │
+├──────────────────────────────────────────────────────────────┤
+│                                                                │
+│  ┌──────────────┐         ┌──────────────────────┐           │
+│  │ MainActivity │────────→│ FloatingService      │           │
+│  └──────────────┘         │ (前台服务)            │           │
+│                            └──────────┬───────────┘           │
+│                                       │                       │
+│                            ┌──────────▼───────────┐         │
+│                            │ ComposeView          │         │
+│                            │ (悬浮层)              │         │
+│                            └──────────┬───────────┘         │
+│                                       │                       │
+│     ┌─────────────────────────────────┼────────────────────┐ │
+│     │                                 │                    │ │
+│  ┌──▼──────────┐              ┌──────▼─────────┐         │ │
+│  │FloatingBall │              │ ChatPanel       │         │ │
+│  │(悬浮球组件)  │              │ (聊天面板)       │         │ │
+│  └─────────────┘              └──────┬─────────┘         │ │
+│                                       │                    │ │
+│                               ┌───────▼─────────┐        │ │
+│                               │ ChatViewModel   │        │ │
+│                               │ (业务逻辑)       │        │ │
+│                               └───────┬─────────┘        │ │
+│                                       │                    │ │
+└───────────────────────────────────────┼────────────────────┘ │
+                                        │                       │
+┌───────────────────────────────────────▼────────────────────┐ │
+│                         数据层                                 │ │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────┐  │ │
+│  │ Room Database    │  │ Claude API Client │  │ ApiKey   │  │ │
+│  │ (消息/联系人存储)  │  │ (AI 回复生成)     │  │ Manager  │  │ │
+│  └──────────────────┘  └──────────────────┘  └──────────┘  │ │
+└───────────────────────────────────────────────────────────┘ │
+│                                                                │
+┌──────────────────────────────────────────────────────────────┐ │
+│                      通知监听服务                               │ │
+│  ┌────────────────────────────────────────────────────────┐  │ │
+│  │ ChatNotificationListenerService                       │  │ │
+│  │ - 读取微信/WhatsApp/Telegram 等应用的新消息通知        │  │ │
+│  │ - 解析通知内容（发送者、消息内容、时间戳）              │  │ │
+│  │ - 存储消息到数据库                                     │  │ │
+│  └────────────────────────────────────────────────────────┘  │ │
+└──────────────────────────────────────────────────────────────┘ │
 ```
-
-### 关键设计
-
-1. **MVVM 架构** - UI 与业务逻辑分离
-2. **前台服务** - 确保应用在后台持续运行
-3. **Compose 声明式 UI** - 高效渲染悬浮层
-4. **StateFlow** - 响应式状态管理
-5. **错误处理** - 完善的异常捕获与恢复
 
 ---
 
@@ -144,53 +158,62 @@
 ```
 day01/
 ├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/example/myapplication/
-│   │   │   │   │
-│   │   │   │   ├── MainActivity.kt          # 主活动
-│   │   │   │   │
-│   │   │   │   ├── FloatingService.kt       # 悬浮窗服务 ⭐
-│   │   │   │   │
-│   │   │   │   ├── components/              # UI 组件
-│   │   │   │   │   ├── FloatingBall.kt      # 悬浮球
-│   │   │   │   │   └── ChatPanel.kt         # 聊天面板
-│   │   │   │   │
-│   │   │   │   ├── viewmodel/               # ViewModel
-│   │   │   │   │   └── ChatViewModel.kt     # 聊天逻辑
-│   │   │   │   │
-│   │   │   │   ├── model/                   # 数据模型
-│   │   │   │   │   └── ChatMessage.kt       # 消息模型
-│   │   │   │   │
-│   │   │   │   └── ui/theme/               # 主题配置
-│   │   │   │       ├── Theme.kt
-│   │   │   │       ├── Color.kt
-│   │   │   │       └── Type.kt
+│   ├── src/main/
+│   │   ├── java/com/example/myapplication/
 │   │   │   │
-│   │   │   └── res/                         # 资源文件
-│   │   │       ├── drawable/
-│   │   │       ├── values/
-│   │   │       └── xml/
+│   │   │   ├── MainActivity.kt              # 主活动，权限请求
+│   │   │   │
+│   │   │   ├── FloatingService.kt           # 悬浮窗服务（前台服务）
+│   │   │   │
+│   │   │   ├── components/                  # UI 组件
+│   │   │   │   ├── FloatingBall.kt         # 悬浮球
+│   │   │   │   └── ChatPanel.kt            # 聊天面板
+│   │   │   │
+│   │   │   ├── viewmodel/                   # ViewModel
+│   │   │   │   └── ChatViewModel.kt        # 聊天逻辑
+│   │   │   │
+│   │   │   ├── model/                      # 数据模型
+│   │   │   │   └── ChatMessage.kt          # 消息模型
+│   │   │   │
+│   │   │   ├── data/
+│   │   │   │   ├── local/                   # 本地存储
+│   │   │   │   │   ├── entity/             # Room Entity
+│   │   │   │   │   ├── dao/                # Room DAO
+│   │   │   │   │   └── AppDatabase.kt      # Room Database
+│   │   │   │   └── remote/                  # 远程 API
+│   │   │   │       ├── ClaudeApiClient.kt  # Claude API 客户端
+│   │   │   │       ├── ApiKeyManager.kt    # API Key 加密管理
+│   │   │   │       └── model/              # API 模型
+│   │   │   │
+│   │   │   ├── domain/                      # 业务逻辑
+│   │   │   │   ├── AutoReplyManager.kt     # 自动回复管理
+│   │   │   │   └── usecase/               # 用例
+│   │   │   │       └── GenerateAutoReplyUseCase.kt
+│   │   │   │
+│   │   │   ├── service/
+│   │   │   │   └── notification/            # 通知监听
+│   │   │   │       ├── ChatNotificationListenerService.kt
+│   │   │   │       ├── NotificationDataExtractor.kt
+│   │   │   │       └── AppPackageMapping.kt
+│   │   │   │
+│   │   │   └── ui/theme/                   # 主题配置
+│   │   │       ├── Theme.kt
+│   │   │       ├── Color.kt
+│   │   │       └── Type.kt
 │   │   │
-│   │   ├── test/                            # 单元测试
-│   │   │   └── java/.../
-│   │   │       ├── ChatMessageTest.kt
-│   │   │       ├── ChatViewModelTest.kt
-│   │   │       └── FloatingBallTest.kt
-│   │   │
-│   │   └── androidTest/                      # 仪器测试
-│   │       └── java/.../
-│   │           └── ExampleInstrumentedTest.kt
+│   │   └── res/                            # 资源文件
 │   │
-│   └── build.gradle.kts                     # 应用构建配置
+│   └── build.gradle.kts                    # 应用构建配置
 │
-├── gradle/                                  # Gradle 包装器
-│   └── wrapper/
+├── .github/
+│   └── workflows/
+│       └── android.yml                      # CI/CD 流水线
 │
-├── build.gradle.kts                         # 根构建配置
+├── gradle/                                 # Gradle 包装器
+├── build.gradle.kts                        # 根构建配置
 ├── settings.gradle.kts                      # 项目设置
 ├── gradle.properties                        # Gradle 属性
-└── README.md                                # 项目文档
+└── README.md                               # 项目文档
 ```
 
 ---
@@ -254,95 +277,61 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 4. 授权后，悬浮球将出现在屏幕上
 5. 拖动悬浮球到合适位置
 6. 点击悬浮球展开聊天面板
+7. 在设置中配置 Claude API Key
 
 ---
 
-## 核心模块
+## 配置 AI API Key
 
-### FloatingService
+1. 获取 [Claude API Key](https://console.anthropic.com/)
+2. 打开应用 → 设置 → API Key
+3. 输入你的 API Key
+4. 应用会自动加密保存
 
-悬浮窗核心服务，负责：
+---
 
-- 创建和管理悬浮球视图
-- 处理 Overlay 权限
-- 管理聊天面板的显示/隐藏
-- 前台服务通知
+## 自动回复功能
 
-```kotlin
-// 主要职责
-class FloatingService : Service() {
-    fun onCreate()           // 初始化窗口管理器、启动前台服务
-    fun showFloatingBall()   // 创建悬浮球视图
-    fun toggleChatPanel()     // 切换聊天面板显示状态
-    fun snapToEdge()         // 悬浮球贴边逻辑
-    fun onDestroy()          // 清理资源
-}
-```
+### 工作流程
 
-### FloatingBall
+1. **通知监听**：应用在后台监听已授权应用的新消息通知
+2. **消息解析**：从通知中提取发送者和消息内容
+3. **AI 生成**：调用 Claude API 生成回复
+4. **确认发送**：用户确认后发送回复（或自动发送）
 
-悬浮球可组合组件，支持：
+### 支持的应用
 
-- 拖动移动
-- 点击展开聊天
-- 自动贴边
-- 无障碍支持
+首次使用需要在系统设置中开启通知访问权限：
 
-```kotlin
-@Composable
-fun FloatingBall(
-    onClick: () -> Unit,           // 点击回调
-    onDrag: (deltaX, deltaY) -> Unit,  // 拖动回调
-    onDragEnd: () -> Unit          // 拖动结束回调
-)
-```
+1. 设置 → 通知访问 → 选择「AI Floating Assistant」
+2. 允许访问
 
-### ChatPanel
+---
 
-聊天面板组件，包含：
+## CI/CD 流水线
 
-- 消息列表（LazyColumn）
-- 输入框
-- 发送按钮
-- 自动滚动
-- AI 回复模拟
+项目使用 GitHub Actions 进行持续集成和部署：
 
-```kotlin
-@Composable
-fun ChatPanel(
-    onClose: () -> Unit,           // 关闭回调
-    viewModel: ChatViewModel       // 视图模型
-)
-```
+### 流水线功能
 
-### ChatViewModel
+- ✅ 每次 PR 和 push 自动构建
+- ✅ 运行单元测试
+- ✅ 生成 Debug APK
+- ✅ 上传 APK 作为构建产物
+- ✅ 生成 Release APK (通过手动触发)
 
-聊天业务逻辑：
+### 触发方式
 
-- 消息状态管理
-- AI 回复逻辑
-- 打字机效果
-- 输入验证
+| 触发条件 | 构建类型 | 说明 |
+|---------|---------|------|
+| push to main | Debug | 自动构建并测试 |
+| pull request | Debug | PR 构建验证 |
+| tag v* | Release | 发布版本 |
+| 手动触发 | Debug/Release | 可选择构建类型 |
 
-```kotlin
-class ChatViewModel : ViewModel() {
-    fun updateInputText(text: String)  // 更新输入
-    fun sendMessage()                   // 发送消息
-}
-```
+### 下载构建产物
 
-### ChatMessage
-
-消息数据模型：
-
-```kotlin
-data class ChatMessage(
-    val id: String = UUID.randomUUID().toString(),
-    val content: String,           // 消息内容
-    val isUser: Boolean,           // 是否用户消息
-    val timestamp: Long = System.currentTimeMillis()
-)
-```
+构建完成后，点击 Actions 标签页，选择对应的运行记录，在 Artifacts 部分下载 APK。
 
 ---
 
@@ -370,10 +359,6 @@ data class ChatMessage(
 # 查看测试报告
 open app/build/reports/tests/testDebugUnitTest/index.html
 ```
-
-### 测试报告
-
-测试结果位于：`app/build/reports/tests/testDebugUnitTest/index.html`
 
 ---
 
@@ -429,6 +414,15 @@ adb shell pm clear com.example.myapplication
 ---
 
 ## 版本历史
+
+### v2.0.0 (2026-04-07)
+
+- ✅ 通知监听功能 - 自动读取聊天应用新消息
+- ✅ Room 数据库 - 本地存储聊天记录和联系人
+- ✅ Claude API 集成 - AI 智能自动回复
+- ✅ 确认发送模式 - 回复需用户确认再发送
+- ✅ 支持多种聊天应用 - 微信、WhatsApp、Telegram 等
+- ✅ CI/CD 流水线 - GitHub Actions 自动构建
 
 ### v1.0.0 (2026-04-07)
 
@@ -496,6 +490,7 @@ limitations under the License.
 - [Jetpack Compose](https://developer.android.com/compose) - 现代 Android UI 工具包
 - [Material Design 3](https://m3.material.io/) - 设计系统
 - [Android Developers](https://developer.android.com/) - 开发文档
+- [Claude API](https://docs.anthropic.com/) - AI 能力支持
 
 ---
 

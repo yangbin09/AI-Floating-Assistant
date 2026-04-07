@@ -1,0 +1,128 @@
+name: Android CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+
+env:
+  JAVA_VERSION: '17'
+  ANDROID_COMPILE_SDK: '36'
+  ANDROID_BUILD_TOOLS: '36.0.0'
+
+jobs:
+  build:
+    name: Build ${{ inputs.build_type || 'debug' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'debug')
+        run: ./gradlew assembleDebug
+
+      - name: Build Release APK
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+        run: ./gradlew assembleRelease
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Upload Debug APK
+        if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'debug')
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+      - name: Upload Release APK
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests/testDebugUnitTest/
+          retention-days: 7
+          continue-on-error: true
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+          path: ./output
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: output/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
