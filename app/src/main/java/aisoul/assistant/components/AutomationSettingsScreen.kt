@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,7 +38,7 @@ fun AutomationSettingsScreen(
                 title = { Text("自动化设置") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
@@ -102,7 +103,6 @@ fun AutomationSettingsScreen(
             item {
                 BlacklistCard(
                     keywords = uiState.settings.blacklistedKeywords,
-                    onAddKeyword = { viewModel.addBlacklistKeyword(it) },
                     onRemoveKeyword = { viewModel.removeBlacklistKeyword(it) },
                     onShowAddDialog = { showAddBlacklistDialog = true }
                 )
@@ -408,7 +408,6 @@ private fun PersonaCard(
 @Composable
 private fun BlacklistCard(
     keywords: List<String>,
-    onAddKeyword: (String) -> Unit,
     onRemoveKeyword: (String) -> Unit,
     onShowAddDialog: () -> Unit
 ) {
@@ -450,7 +449,7 @@ private fun BlacklistCard(
                     items(keywords) { keyword ->
                         InputChip(
                             selected = false,
-                            onClick = { },
+                            onClick = { /* 关键词通过右侧图标删除 */ },
                             label = { Text(keyword) },
                             trailingIcon = {
                                 Icon(

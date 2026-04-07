@@ -56,7 +56,7 @@ class SoulMatchViewModel(application: Application) : AndroidViewModel(applicatio
                         SoulUser(
                             id = contact.conversationId,
                             name = contact.senderName,
-                            signature = contact.lastMessagePreview ?: "",
+                            signature = contact.lastMessagePreview,
                             matchScore = 0,
                             detectedAt = contact.lastMessageTime
                         )

@@ -24,7 +24,6 @@ class SoulProfileAnalyzer {
         var gender: SoulUserGender? = null
         var signature = ""
         val tags = mutableListOf<String>()
-        val photos = mutableListOf<String>()
 
         var inSignatureSection = false
         var inTagSection = false

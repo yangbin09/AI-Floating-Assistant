@@ -15,7 +15,6 @@ class ChatStageAnalyzer {
      */
     fun analyzeStage(context: ChatContext): ChatStage {
         val messageCount = context.messageCount
-        val recentMessages = context.recentMessages.takeLast(10)
 
         // 根据消息数量初步判断
         return when {
@@ -32,9 +31,6 @@ class ChatStageAnalyzer {
      */
     fun analyzeByContent(messages: List<ChatBubble>): ChatStage {
         if (messages.isEmpty()) return ChatStage.COLD_START
-
-        val userMessages = messages.filter { it.isFromMe }
-        val opponentMessages = messages.filter { !it.isFromMe }
 
         // 检查是否有破冰信号
         val hasGreeting = messages.any { msg ->
@@ -94,6 +90,7 @@ class ChatStageAnalyzer {
     /**
      * 判断是否需要转换阶段
      */
+    @Suppress("UNUSED_PARAMETER")
     fun shouldUpgradeStage(currentStage: ChatStage, newMessage: String): Boolean {
         // 检查是否有推进关系的信号
         val upgradeSignals = listOf(

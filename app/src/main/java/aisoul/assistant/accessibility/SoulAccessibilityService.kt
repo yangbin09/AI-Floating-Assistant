@@ -71,6 +71,8 @@ class SoulAccessibilityService : AccessibilityService() {
             }
         }
 
+        // Deprecated in API 29+, node recycling is now automatic
+        @Suppress("DEPRECATION")
         source.recycle()
     }
 
@@ -92,6 +94,7 @@ class SoulAccessibilityService : AccessibilityService() {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun handleClick(event: AccessibilityEvent) {
         // 处理点击事件，用于日志记录
     }
@@ -112,11 +115,14 @@ class SoulAccessibilityService : AccessibilityService() {
         if (nodes.isNotEmpty()) {
             val clicked = nodes[0].performAction(AccessibilityNodeInfo.ACTION_CLICK)
             for (node in nodes) {
+                @Suppress("DEPRECATION")
                 node.recycle()
             }
+            @Suppress("DEPRECATION")
             rootNode.recycle()
             return clicked
         }
+        @Suppress("DEPRECATION")
         rootNode.recycle()
         return false
     }
@@ -127,6 +133,7 @@ class SoulAccessibilityService : AccessibilityService() {
     fun scrollUp() {
         val rootNode = rootInActiveWindow ?: return
         rootNode.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+        @Suppress("DEPRECATION")
         rootNode.recycle()
     }
 
@@ -136,6 +143,7 @@ class SoulAccessibilityService : AccessibilityService() {
     fun scrollDown() {
         val rootNode = rootInActiveWindow ?: return
         rootNode.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
+        @Suppress("DEPRECATION")
         rootNode.recycle()
     }
 
@@ -151,6 +159,7 @@ class SoulAccessibilityService : AccessibilityService() {
             }
             inputFields[0].performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
         }
+        @Suppress("DEPRECATION")
         rootNode.recycle()
     }
 
