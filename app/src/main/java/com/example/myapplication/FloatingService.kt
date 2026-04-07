@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -29,12 +30,14 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.example.myapplication.components.ChatPanel
 import com.example.myapplication.components.FloatingBall
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.viewmodel.ChatViewModel
 
 class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     private lateinit var windowManager: WindowManager
     private var floatingView: ComposeView? = null
     private var chatPanelView: ComposeView? = null
+    private lateinit var chatViewModel: ChatViewModel
 
     private val _lifecycleRegistry = androidx.lifecycle.LifecycleRegistry(this)
     private val _savedStateRegistryController = SavedStateRegistryController.create(this)
@@ -58,6 +61,7 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
 
         startForegroundService()
         showFloatingBall()
+        chatViewModel = ViewModelProvider(this)[ChatViewModel::class.java]
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -215,7 +219,8 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             setContent {
                 MyApplicationTheme {
                     ChatPanel(
-                        onClose = { removeChatPanel() }
+                        onClose = { removeChatPanel() },
+                        viewModel = chatViewModel
                     )
                 }
             }

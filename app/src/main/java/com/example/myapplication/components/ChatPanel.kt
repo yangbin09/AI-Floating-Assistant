@@ -38,14 +38,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.model.ChatMessage
 import com.example.myapplication.viewmodel.ChatViewModel
 
 @Composable
 fun ChatPanel(
     onClose: () -> Unit,
-    viewModel: ChatViewModel = viewModel()
+    viewModel: ChatViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
