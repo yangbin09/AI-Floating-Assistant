@@ -25,8 +25,7 @@ data class AutoReplyResult(
 
 class AutoReplyManager(
     private val database: AppDatabase,
-    private val apiKeyManager: ApiKeyManager,
-    private val notificationListener: ChatNotificationListenerService
+    private val apiKeyManager: ApiKeyManager
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val generateReplyUseCase = GenerateAutoReplyUseCase(database, apiKeyManager)
@@ -35,12 +34,6 @@ class AutoReplyManager(
     val autoReplyResults: SharedFlow<AutoReplyResult> = _autoReplyResults
 
     var replyMode: AutoReplyMode = AutoReplyMode.CONFIRM_FIRST
-
-    fun startListening() {
-        scope.launch {
-            notificationListener.onNotificationPosted(null) // This won't actually be called here
-        }
-    }
 
     suspend fun handleNewMessage(notification: ChatNotification) {
         // Check if auto-reply is enabled for this contact

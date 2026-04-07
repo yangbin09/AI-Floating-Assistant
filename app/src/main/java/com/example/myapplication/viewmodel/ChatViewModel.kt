@@ -6,13 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.local.AppDatabase
 import com.example.myapplication.data.local.entity.ChatMessageEntity
 import com.example.myapplication.data.remote.ApiKeyManager
-import com.example.myapplication.domain.AutoReplyMode
-import com.example.myapplication.domain.AutoReplyResult
-import com.example.myapplication.domain.AutoReplyManager
 import com.example.myapplication.model.ChatMessage
 import com.example.myapplication.model.ConversationItem
 import com.example.myapplication.model.PendingReply
-import com.example.myapplication.service.notification.ChatNotification
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +31,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getInstance(application)
     private val apiKeyManager = ApiKeyManager(application)
-    private lateinit var autoReplyManager: AutoReplyManager
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -106,8 +102,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 val entity = ChatMessageEntity(
                     content = text,
                     isUser = true,
-                    senderName = conversation?.senderName,
-                    senderApp = null,
+                    senderName = conversation?.senderName ?: "User",
+                    senderApp = "",
                     conversationId = activeConversation
                 )
                 database.chatMessageDao().insertMessage(entity)

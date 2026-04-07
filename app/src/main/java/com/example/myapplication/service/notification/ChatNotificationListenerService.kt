@@ -74,15 +74,4 @@ class ChatNotificationListenerService : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         // Optionally handle notification dismissal
     }
-
-    companion object {
-        fun getEnabledListenerPackages(context: android.content.Context): List<String> {
-            return try {
-                val listener = context.getSystemService(NOTIFICATION_SERVICE) as? android.app.NotificationManager
-                listener?.getEnabledListenerPackages()?.toList() ?: emptyList()
-            } catch (e: Exception) {
-                emptyList()
-            }
-        }
-    }
 }

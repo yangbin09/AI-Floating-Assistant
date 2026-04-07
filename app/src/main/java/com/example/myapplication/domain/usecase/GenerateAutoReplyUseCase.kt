@@ -34,7 +34,7 @@ class GenerateAutoReplyUseCase(
         val client = ClaudeApiClient(apiKey)
         val request = ClaudeRequest(
             model = apiKeyManager.selectedModel,
-            max_tokens = 500,
+            maxTokens = 500,
             messages = contextMessages
         )
 
