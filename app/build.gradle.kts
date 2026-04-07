@@ -58,4 +58,18 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Room Database
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    annotationProcessor(libs.androidx.room.compiler)
+
+    // Networking
+    implementation(libs.okhttp)
+
+    // Security (EncryptedSharedPreferences)
+    implementation(libs.androidx.security.crypto)
+
+    // JSON
+    implementation(libs.gson)
 }
