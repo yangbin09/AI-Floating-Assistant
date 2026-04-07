@@ -13,25 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
-import com.example.myapplication.components.DashboardContent
 import com.example.myapplication.service.notification.ChatNotificationListenerService
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewmodel.MainViewModel
@@ -75,11 +57,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                DashboardScreen(
-                    viewModel = viewModel,
-                    onStartService = { requestAllPermissions() },
-                    onStopService = { stopFloatingService() }
-                )
+                MainScreen(mainViewModel = viewModel)
             }
         }
 
@@ -117,9 +95,6 @@ class MainActivity : ComponentActivity() {
             "enabled_notification_listeners"
         )
         val isEnabled = enabledListeners?.contains(componentName.flattenToString()) == true
-
-        // Update service status in ViewModel
-        val currentStatus = viewModel.uiState.value.serviceStatus
         viewModel.refreshState()
     }
 
@@ -165,64 +140,18 @@ class MainActivity : ComponentActivity() {
         } else {
             startService(intent)
         }
-
-        // Bind to service to track running state
         bindFloatingServiceIfRunning()
-
         Toast.makeText(this, "悬浮球服务已开启", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopFloatingService() {
         val intent = Intent(this, FloatingService::class.java)
         stopService(intent)
-
         if (isFloatingServiceBound) {
             unbindService(serviceConnection)
             isFloatingServiceBound = false
         }
-
         viewModel.setFloatingServiceRunning(false)
         Toast.makeText(this, "悬浮球服务已停止", Toast.LENGTH_SHORT).show()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DashboardScreen(
-    viewModel: MainViewModel,
-    onStartService: () -> Unit,
-    onStopService: () -> Unit
-) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("AI 悬浮助手") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                actions = {
-                    IconButton(onClick = { viewModel.refreshState() }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "刷新"
-                        )
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            DashboardContent(
-                viewModel = viewModel,
-                onStartService = onStartService,
-                onStopService = onStopService
-            )
-        }
     }
 }

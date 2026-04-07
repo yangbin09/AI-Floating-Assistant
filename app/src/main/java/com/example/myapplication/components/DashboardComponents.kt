@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Send
@@ -138,6 +139,11 @@ fun DashboardContent(
                     onToggle = { viewModel.toggleAutoReply() }
                 )
             }
+        }
+
+        // Soul Automation Section
+        item {
+            SoulAutomationSection()
         }
 
         // Recent Logs Section
@@ -550,4 +556,108 @@ fun MessageLogItem(message: ChatMessage) {
 private fun formatTimestamp(timestamp: Long): String {
     val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
     return sdf.format(java.util.Date(timestamp))
+}
+
+@Composable
+fun SoulAutomationSection() {
+    var isSoulExpanded by remember { mutableStateOf(false) }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isSoulExpanded = !isSoulExpanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "🔮 Soul 自动化", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Beta",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = if (isSoulExpanded) "▼" else "▶",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            AnimatedVisibility(visible = isSoulExpanded) {
+                Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "全自动社交助手 - AI 自动帮你找人、聊天",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // 功能列表
+                    SoulFeatureItem(
+                        icon = "👤",
+                        title = "自动找人",
+                        description = "自动扫描匹配列表，分析用户好聊程度"
+                    )
+                    SoulFeatureItem(
+                        icon = "💬",
+                        title = "智能开场",
+                        description = "基于对方兴趣生成个性化开场白"
+                    )
+                    SoulFeatureItem(
+                        icon = "🤖",
+                        title = "自动续聊",
+                        description = "AI 分析上下文，生成多风格回复建议"
+                    )
+                    SoulFeatureItem(
+                        icon = "🎭",
+                        title = "人设切换",
+                        description = "真诚温柔/幽默松弛/高情商等多种风格"
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = "⚠️ 使用提示",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = "• 请确保 Soul 应用已开启\n• 首次使用需授权无障碍权限\n• 建议合理设置发送频率避免封号",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Button(
+                        onClick = { /* TODO: Navigate to Soul Match */ },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Explore, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("打开 Soul 匹配助手")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SoulFeatureItem(
+    icon: String,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = icon, style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(text = title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

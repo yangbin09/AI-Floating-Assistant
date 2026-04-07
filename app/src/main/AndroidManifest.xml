@@ -36,6 +36,18 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".accessibility.SoulAccessibilityService"
+            android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewClicked|typeViewScrolled"
+            android:accessibilityFeedbackType="feedbackGeneric"
+            android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows"
+            android:canRetrieveWindowContent="true"
+            android:description="@string/accessibility_service_description"
+            android:enabled="true"
+            android:exported="true"
+            android:notificationTimeout="100"
+            android:settingsActivity="com.example.myapplication.MainActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
