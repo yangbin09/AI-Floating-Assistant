@@ -108,8 +108,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: output/*.apk
-          tag: latest
-          release_name: AI灵魂伴侣 Latest Build
+          tag_name: latest
+          name: AI灵魂伴侣 Latest Build
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
