@@ -300,11 +300,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // User confirms a pending auto-reply
     fun confirmAutoReply(pendingReply: PendingReply) {
         viewModelScope.launch {
-            // TODO: Actually send the message via appropriate service
-            // Remove from pending
+            // 将确认的回复添加到消息列表
+            val confirmedMessage = ChatMessage(
+                id = UUID.randomUUID().toString(),
+                content = pendingReply.generatedReply,
+                isUser = true,
+                conversationId = pendingReply.conversationId
+            )
+            messageList.add(confirmedMessage)
+
+            // 保存到数据库
+            val entity = ChatMessageEntity(
+                content = pendingReply.generatedReply,
+                isUser = true,
+                senderName = "User",
+                senderApp = "",
+                conversationId = pendingReply.conversationId
+            )
+            database.chatMessageDao().insertMessage(entity)
+
+            // 更新pending列表
             _uiState.value = _uiState.value.copy(
                 pendingReplies = _uiState.value.pendingReplies.filter { it.id != pendingReply.id }
             )
+
+            updateState()
         }
     }
 

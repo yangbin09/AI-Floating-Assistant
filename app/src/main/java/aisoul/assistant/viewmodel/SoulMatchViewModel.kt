@@ -1,6 +1,7 @@
 package com.aisoul.assistant.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.aisoul.assistant.accessibility.SoulAccessibilityService
@@ -15,6 +16,7 @@ import com.aisoul.assistant.model.SoulUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -45,7 +47,27 @@ class SoulMatchViewModel(application: Application) : AndroidViewModel(applicatio
      */
     private fun loadSavedUsers() {
         viewModelScope.launch {
-            // TODO: 从数据库加载之前匹配过的用户
+            try {
+                // 从数据库加载之前匹配过的用户
+                val contacts = database.contactDao().getAllContacts().first()
+                val savedUsers = contacts
+                    .filter { it.senderApp == "soul" }
+                    .map { contact ->
+                        SoulUser(
+                            id = contact.conversationId,
+                            name = contact.senderName,
+                            signature = contact.lastMessagePreview ?: "",
+                            matchScore = 0,
+                            detectedAt = contact.lastMessageTime
+                        )
+                    }
+                if (savedUsers.isNotEmpty()) {
+                    _detectedUsers.value = savedUsers
+                    _uiState.value = _uiState.value.copy(users = savedUsers)
+                }
+            } catch (e: Exception) {
+                Log.e("SoulMatchViewModel", "加载保存的用户失败: ${e.message}")
+            }
         }
     }
 
@@ -122,6 +144,13 @@ class SoulMatchViewModel(application: Application) : AndroidViewModel(applicatio
     fun getOpenersForUser(userId: String): List<String> {
         return _openersMap.value[userId] ?: emptyList()
     }
+
+    /**
+     * 选择人设
+     */
+    fun selectPersona(personaId: String) {
+        _uiState.value = _uiState.value.copy(selectedPersonaId = personaId)
+    }
 }
 
 /**
@@ -132,5 +161,6 @@ data class SoulMatchUiState(
     val selectedUser: SoulUser? = null,
     val isScanning: Boolean = false,
     val generatingOpenersFor: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val selectedPersonaId: String = "sincere_gentle"
 )

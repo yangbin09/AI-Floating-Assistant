@@ -88,8 +88,8 @@ fun SoulMatchScreen(
                     onStartChat = onNavigateToChatWorkbench
                 )
                 1 -> PersonaSettingsTab(
-                    selectedPersonaId = "sincere_gentle", // TODO: 从 ViewModel 获取
-                    onPersonaSelect = { /* TODO */ }
+                    selectedPersonaId = uiState.selectedPersonaId,
+                    onPersonaSelect = { viewModel.selectPersona(it) }
                 )
             }
         }

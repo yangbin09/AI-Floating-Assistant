@@ -171,12 +171,32 @@ class SoulAutoEngine(
      * 获取或创建用户
      */
     private suspend fun getOrCreateUser(userId: String): SoulUser {
-        // TODO: 从数据库或缓存获取
-        return SoulUser(
-            id = userId,
-            name = "Soul用户",
-            detectedAt = System.currentTimeMillis()
-        )
+        // 尝试从数据库获取用户信息
+        return try {
+            val contact = database.contactDao().getContact(userId)
+            if (contact != null) {
+                SoulUser(
+                    id = userId,
+                    name = contact.senderName,
+                    signature = contact.lastMessagePreview,
+                    detectedAt = contact.lastMessageTime
+                )
+            } else {
+                // 创建新用户（使用ID前8位作为临时名称）
+                SoulUser(
+                    id = userId,
+                    name = "Soul用户",
+                    detectedAt = System.currentTimeMillis()
+                )
+            }
+        } catch (e: Exception) {
+            // 发生错误时返回默认用户
+            SoulUser(
+                id = userId,
+                name = "Soul用户",
+                detectedAt = System.currentTimeMillis()
+            )
+        }
     }
 
     /**

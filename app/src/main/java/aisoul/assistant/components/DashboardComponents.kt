@@ -64,6 +64,7 @@ fun DashboardContent(
     viewModel: MainViewModel,
     onStartService: () -> Unit,
     onStopService: () -> Unit,
+    onNavigateToSoulMatch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -559,7 +560,9 @@ private fun formatTimestamp(timestamp: Long): String {
 }
 
 @Composable
-fun SoulAutomationSection() {
+fun SoulAutomationSection(
+    onNavigateToSoulMatch: () -> Unit = {}
+) {
     var isSoulExpanded by remember { mutableStateOf(false) }
 
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -630,7 +633,7 @@ fun SoulAutomationSection() {
                     )
 
                     Button(
-                        onClick = { /* TODO: Navigate to Soul Match */ },
+                        onClick = onNavigateToSoulMatch,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Default.Explore, contentDescription = null)
