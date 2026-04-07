@@ -148,6 +148,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = _uiState.value.copy(isFloatingServiceRunning = running)
     }
 
+    fun updateNotificationListenerStatus(isEnabled: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            serviceStatus = _uiState.value.serviceStatus.copy(isNotificationListenerEnabled = isEnabled)
+        )
+    }
+
     fun updateApiKey(apiKey: String) {
         apiKeyManager.claudeApiKey = apiKey
         refreshState()

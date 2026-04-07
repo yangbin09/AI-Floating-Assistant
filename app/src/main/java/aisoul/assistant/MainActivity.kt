@@ -99,7 +99,8 @@ class MainActivity : ComponentActivity() {
             "enabled_notification_listeners"
         )
         val isEnabled = enabledListeners?.contains(componentName.flattenToString()) == true
-        viewModel.refreshState()
+        // Update the service status in ViewModel
+        viewModel.updateNotificationListenerStatus(isEnabled)
     }
 
     private fun requestAllPermissions() {

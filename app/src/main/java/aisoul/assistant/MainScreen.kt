@@ -54,9 +54,7 @@ fun MainScreen(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showSoulMatchScreen by remember { mutableStateOf(false) }
 
-    val chatViewModel: ChatViewModel = viewModel()
     val chatWorkbenchViewModel: ChatWorkbenchViewModel = viewModel()
-    val automationSettingsViewModel: AutomationSettingsViewModel = viewModel()
     val soulMatchViewModel: SoulMatchViewModel = viewModel()
 
     // Show SoulMatchScreen when requested
@@ -104,10 +102,6 @@ fun MainScreen(
                     onNavigateToSoulMatch = { showSoulMatchScreen = true }
                 )
                 1 -> AiTabContent(
-                    onNavigateToWorkbench = { user ->
-                        chatWorkbenchViewModel.setCurrentUser(user)
-                        selectedTabIndex = 3
-                    },
                     onNavigateToSoulMatch = { showSoulMatchScreen = true }
                 )
                 2 -> RecordsTabContent(
@@ -314,7 +308,6 @@ private fun FloatingBallSettingsTab(
 
 @Composable
 private fun AiTabContent(
-    onNavigateToWorkbench: (SoulUser) -> Unit,
     onNavigateToSoulMatch: () -> Unit
 ) {
     // AI Tab - Soul 自动化功能
@@ -336,7 +329,6 @@ private fun AiTabContent(
 
         when (selectedSubTab) {
             0 -> SoulMatchTab(
-                onNavigateToWorkbench = onNavigateToWorkbench,
                 onNavigateToSoulMatch = onNavigateToSoulMatch
             )
             1 -> AutomationSettingsContent()
@@ -346,7 +338,6 @@ private fun AiTabContent(
 
 @Composable
 private fun SoulMatchTab(
-    onNavigateToWorkbench: (SoulUser) -> Unit,
     onNavigateToSoulMatch: () -> Unit
 ) {
     val context = LocalContext.current

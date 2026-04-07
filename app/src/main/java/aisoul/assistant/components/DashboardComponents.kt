@@ -144,7 +144,7 @@ fun DashboardContent(
 
         // Soul Automation Section
         item {
-            SoulAutomationSection()
+            SoulAutomationSection(onNavigateToSoulMatch = onNavigateToSoulMatch)
         }
 
         // Recent Logs Section
